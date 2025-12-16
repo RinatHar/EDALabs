@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: online-shoppers-app
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./model:/app/model
+    networks:
+      - shopper-network
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    build: ./nginx
+    container_name: shopper-nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+    networks:
+      - shopper-network
+    volumes:
+      - ./data:/app/data:ro
+
+networks:
+  shopper-network:
+    driver: bridge
